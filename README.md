@@ -9,6 +9,10 @@
 - Create Browserrouter > routes >Route = /body >childrens
 - Crate an OutLet in Body component
 - created Login, Profile, and Footer Components and added Routing to them 
+-install axios 
+- CORS =  cors install in backend and add middleaware  configuration with : origin , credentials : true
+- Whenever you make  axios call pass { withCredentials : true } 
+
 
 
 
