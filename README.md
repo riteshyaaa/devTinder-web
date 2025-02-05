@@ -12,8 +12,13 @@
 -install axios 
 - CORS =  cors install in backend and add middleaware  configuration with : origin , credentials : true
 - Whenever you make  axios call pass { withCredentials : true } 
-
-
+- Install react-redux and redux/@toolkit 
+- configure Store => Provider => createSlice => add reducer to store 
+- Add redux devTool in chrome 
+- login and see your code is coming properly in store 
+- As soon as you login see your NavBar should updated
+- Refactor your code  create a constants file +  add files in components folder 
+-
 
 
 
