@@ -9,8 +9,8 @@ const Login = () => {
   const [email, setEmail] = useState("arya@gmail.com");
   const [password, setPassword] = useState("Arya@123");
   const navigate = useNavigate();
-
   const dispatch = useDispatch();
+  const [error, setError] = useState("");
 
   const handleSubmit = async () => {
     try {
@@ -24,10 +24,12 @@ const Login = () => {
           withCredentials: true,
         }
       );
-      // Store the user data in Redux store
+
       dispatch(addUser(res.data));
-      navigate("/");
+
+      return navigate("/");
     } catch (err) {
+      setError(err?.response?.data?.error);
       console.log(err);
     }
   };
@@ -57,6 +59,7 @@ const Login = () => {
               />
             </div>
           </div>
+          <p className="text-red-500"> {error} </p>
           <div className="card-actions justify-center">
             <button
               className="btn btn-primary text-lg font-bold"

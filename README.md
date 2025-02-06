@@ -18,8 +18,10 @@
 - login and see your code is coming properly in store 
 - As soon as you login see your NavBar should updated
 - Refactor your code  create a constants file +  add files in components folder 
--
-
+- without logging user have not access to the any routes
+- if user is not logged in redirect to login
+- logOut feature 
+- profile feature 
 
 
 
