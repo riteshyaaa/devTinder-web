@@ -21,7 +21,8 @@
 - without logging user have not access to the any routes
 - if user is not logged in redirect to login
 - logOut feature 
-- profile feature 
+- Get the feed by axios call to /feed api  and add to the store 
+- Build the user card on the feed 
 
 
 
