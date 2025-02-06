@@ -23,6 +23,8 @@
 - logOut feature 
 - Get the feed by axios call to /feed api  and add to the store 
 - Build the user card on the feed 
+- Build profile card  and profile edit card feature 
+- 
 
 
 
