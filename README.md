@@ -25,6 +25,8 @@
 - Build the user card on the feed 
 - Build profile card  and profile edit card feature 
 - Feature all connection  page 
+-Feature accept /reject  connection request
+
 
 
 
