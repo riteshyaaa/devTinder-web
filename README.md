@@ -26,7 +26,7 @@
 - Build profile card  and profile edit card feature 
 - Feature all connection  page 
 -Feature accept /reject  connection request
-
+- send / ignore the user from the feed 
 
 
 
