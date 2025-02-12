@@ -8,13 +8,14 @@ import { addUser } from "../utils/userSlice";
 
 const EditProfile = ({ user }) => {
   const [firstName, setFirstName] = useState(user.firstName);
-  const [lastName, setLastName] = useState(user.lastName);
-  const [age, setAge] = useState(user.age);
-  const [about, setAbout] = useState(user.about);
-  const [photoUrl, setPhotoUrl] = useState(user.photoUrl);
-  const [gender, setGender] = useState(user.gender);
+  const [lastName, setLastName] = useState(user.lastName || "");
+  const [age, setAge] = useState(user.age || "");
+  const [about, setAbout] = useState(user.about || "");
+  const [photoUrl, setPhotoUrl] = useState(user.photoUrl || "");
+  const [gender, setGender] = useState(user.gender || "");
   const [error, setError] = useState();
   const [showToast, setShowToast] = useState(false)
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -137,7 +138,7 @@ const EditProfile = ({ user }) => {
       <div className="toast toast-top toast-center">
         {showToast && (
           <div className="alert alert-success">
-            <span>Message sent successfully.</span>
+            <span>Saved Successfully.</span>
           </div>
         )}
       </div>
