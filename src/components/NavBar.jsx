@@ -26,8 +26,9 @@ const NavBar = () => {
       {user && (
         <div className="flex-none gap-1 ">
           <div className="flex items-center gap-x-1">
-            {" "}
-            Welcome, {user.firstName}
+            <Link to="/">
+            <img   src= "https://img.icons8.com/material-rounded/24/home.png" alt="HOME" className="w-10 bg-white rounded-full" />
+            </Link>
           </div>
           <div className="dropdown dropdown-end mx-2 ">
             <div
