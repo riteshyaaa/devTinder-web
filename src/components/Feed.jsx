@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import UserCard from "./UserCard";
 import axios from "axios";
 import { BASE_URL } from "../utils/constants";
@@ -8,9 +8,17 @@ import { addFeed } from "../utils/feedSlice";
 const Feed = () => {
   const feed = useSelector((store) => store.feed);
   const dispatch = useDispatch();
-  const [error, getError] = useState("")
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (error) {
+      alert(error); // Simple alert for error
+      setError(""); // Clear error after showing
+    }
+  }, [error]);
   const getFeed = async () => {
-    if (feed) return;
+    if (feed ) return ;
+   ;
     try {
       const res = await axios.get(BASE_URL + "/feed", {
         withCredentials: true,
@@ -18,7 +26,7 @@ const Feed = () => {
 
       dispatch(addFeed(res.data));
     } catch (error) {
-      getError(error);
+      setError(error);
     }
   };
 
@@ -27,7 +35,7 @@ const Feed = () => {
   }, []);
 
   if(!feed) return ;
-  if(feed.length === 0) return <div className="text-center text-2xl">No more users found</div>;
+  if(feed.length <= 0) return <div className="text-center text-2xl">No more users found</div>;
   return (
     feed && (
       <div className="flex justify-center my-10 ">

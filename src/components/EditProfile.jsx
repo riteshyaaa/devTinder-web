@@ -1,18 +1,19 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import UserCard from "./UserCard";
 import axios from "axios";
 import { BASE_URL } from "../utils/constants";
 import { addUser } from "../utils/userSlice";
+import PropTypes from 'prop-types';
 
 const EditProfile = ({ user }) => {
-  const [firstName, setFirstName] = useState(user.firstName);
-  const [lastName, setLastName] = useState(user.lastName || "");
-  const [age, setAge] = useState(user.age || "");
-  const [about, setAbout] = useState(user.about || "");
-  const [photoUrl, setPhotoUrl] = useState(user.photoUrl || "");
-  const [gender, setGender] = useState(user.gender || "");
+  const [firstName, setFirstName] = useState(user?.firstName);
+  const [lastName, setLastName] = useState(user?.lastName || "");
+  const [age, setAge] = useState(user?.age || "");
+  const [about, setAbout] = useState(user?.about || "");
+  const [photoUrl, setPhotoUrl] = useState(user?.photoUrl || "");
+  const [gender, setGender] = useState(user?.gender || "");
   const [error, setError] = useState();
   const [showToast, setShowToast] = useState(false)
 
@@ -144,6 +145,16 @@ const EditProfile = ({ user }) => {
       </div>
     </>
   );
+};
+EditProfile.propTypes = {
+  user: PropTypes.shape({
+    firstName: PropTypes.string,
+    lastName: PropTypes.string,
+    age: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    about: PropTypes.string,
+    photoUrl: PropTypes.string,
+    gender: PropTypes.string
+  })
 };
 
 export default EditProfile;

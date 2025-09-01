@@ -1,5 +1,5 @@
 import axios from "axios";
-import React from "react";
+
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { BASE_URL } from "../utils/constants";
@@ -24,11 +24,9 @@ const NavBar = () => {
         </Link>
       </div>
       {user && (
-        <div className="flex-none gap-1 ">
+        <div className="flex gap-1 ">
           <div className="flex items-center gap-x-1">
-            <Link to="/">
-            <img   src= "https://img.icons8.com/material-rounded/24/home.png" alt="HOME" className="w-10 bg-white rounded-full" />
-            </Link>
+            <p className="text-white">Welcome, {user.firstName}</p>
           </div>
           <div className="dropdown dropdown-end mx-2 ">
             <div
