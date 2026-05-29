@@ -5,6 +5,8 @@ import { getSocket } from "../utils/socket";
 import { fetchChatHistory, getErrorMessage } from "../services/api";
 import { Spinner } from "./Shimmer";
 import CodeBlock from "./CodeBlock";
+import VideoCall from "./VideoCall";
+import IceBreakers from "./IceBreakers";
 
 const EMOJI_OPTIONS = ["👍", "❤️", "😂", "🎉", "🔥", "👀", "💯", "🚀"];
 
@@ -22,6 +24,8 @@ const Chat = () => {
   const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const fileInputRef = useRef(null);
+
+  const [showVideoCall, setShowVideoCall] = useState(false);
 
   const { targetId } = useParams();
   const user = useSelector((state) => state.user);
@@ -314,12 +318,31 @@ const Chat = () => {
             </div>
           </div>
         </div>
+        {/* Video Call Button */}
+        <button
+          onClick={() => setShowVideoCall(true)}
+          className="btn btn-ghost btn-sm btn-circle"
+          aria-label="Start video call"
+          title="Start a video call"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+          </svg>
+        </button>
       </header>
 
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-5 space-y-3" role="log" aria-label="Message history" aria-live="polite">
         {messages.length === 0 && (
-          <p className="text-center text-base-content/50 mt-10">No messages yet. Start the conversation!</p>
+          <div className="mt-6 space-y-4">
+            <p className="text-center text-base-content/50">No messages yet. Start the conversation!</p>
+            {/* AI Ice Breakers */}
+            <IceBreakers
+              currentUser={user}
+              matchedUser={targetUser}
+              onSelect={(text) => setNewMessage(text)}
+            />
+          </div>
         )}
 
         {messages.map((msg, index) => {
@@ -489,6 +512,16 @@ const Chat = () => {
           Send
         </button>
       </form>
+
+      {/* Video Call Modal */}
+      {showVideoCall && (
+        <VideoCall
+          userId={userId}
+          targetId={targetId}
+          targetName={targetUser ? `${targetUser.firstName} ${targetUser.lastName}` : "User"}
+          onClose={() => setShowVideoCall(false)}
+        />
+      )}
     </section>
   );
 };

@@ -17,6 +17,8 @@ const Onboarding = lazy(() => import("./components/Onboarding"));
 const ProjectBoard = lazy(() => import("./components/ProjectBoard"));
 const ActivityFeed = lazy(() => import("./components/ActivityFeed"));
 const LandingPage = lazy(() => import("./components/LandingPage"));
+const CodingChallenges = lazy(() => import("./components/CodingChallenges"));
+const ProfileAnalytics = lazy(() => import("./components/ProfileAnalytics"));
 
 function App() {
   return (
@@ -39,6 +41,8 @@ function App() {
                 <Route path="chat/:targetId" element={<Chat />} />
                 <Route path="projects" element={<ProjectBoard />} />
                 <Route path="activity" element={<ActivityFeed />} />
+                <Route path="challenges" element={<CodingChallenges />} />
+                <Route path="analytics" element={<ProfileAnalytics />} />
               </Route>
             </Routes>
           </Suspense>

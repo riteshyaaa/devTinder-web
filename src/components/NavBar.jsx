@@ -271,6 +271,16 @@ const NavBar = () => {
                 <Link to="/activity" role="menuitem">Activity Feed</Link>
               </li>
               <li role="none">
+                <Link to="/challenges" role="menuitem">
+                  ⚡ Challenges
+                </Link>
+              </li>
+              <li role="none">
+                <Link to="/analytics" role="menuitem">
+                  📊 Analytics
+                </Link>
+              </li>
+              <li role="none">
                 <button onClick={handleLogout} role="menuitem" className="w-full text-left text-error">
                   Logout
                 </button>
