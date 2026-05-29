@@ -33,6 +33,15 @@ const EXPERIENCE_LEVELS = [
   { value: "lead", label: "Lead / Staff (10+ years)" },
 ];
 
+const AVAILABILITY_OPTIONS = [
+  { value: "", label: "Select availability" },
+  { value: "open", label: "Open to chat" },
+  { value: "busy", label: "Busy — slow responses" },
+  { value: "weekends", label: "Available weekends only" },
+  { value: "evenings", label: "Available evenings only" },
+  { value: "not-available", label: "Not available right now" },
+];
+
 const EditProfile = ({ user }) => {
   const [firstName, setFirstName] = useState(user?.firstName || "");
   const [lastName, setLastName] = useState(user?.lastName || "");
@@ -43,6 +52,9 @@ const EditProfile = ({ user }) => {
   const [skills, setSkills] = useState(user?.skills || []);
   const [experienceLevel, setExperienceLevel] = useState(user?.experienceLevel || "");
   const [location, setLocation] = useState(user?.location || "");
+  const [currentlyBuilding, setCurrentlyBuilding] = useState(user?.currentlyBuilding || "");
+  const [availability, setAvailability] = useState(user?.availability || "");
+  const [socialLinks, setSocialLinks] = useState(user?.socialLinks || { linkedin: "", twitter: "", website: "" });
   const [skillSearch, setSkillSearch] = useState("");
   const [fieldErrors, setFieldErrors] = useState({});
   const [serverError, setServerError] = useState("");
@@ -121,6 +133,13 @@ const EditProfile = ({ user }) => {
         skills,
         experienceLevel,
         location: location.trim(),
+        currentlyBuilding: currentlyBuilding.trim(),
+        availability,
+        socialLinks: {
+          linkedin: socialLinks.linkedin.trim(),
+          twitter: socialLinks.twitter.trim(),
+          website: socialLinks.website.trim(),
+        },
       });
       dispatch(addUser(res.data.data));
       setShowToast(true);
@@ -307,6 +326,86 @@ const EditProfile = ({ user }) => {
                   {fieldErrors.about}
                 </span>
               )}
+            </div>
+
+            {/* ===== CURRENTLY BUILDING ===== */}
+            <div className="form-control">
+              <label className="label" htmlFor="edit-building">
+                <span className="label-text">
+                  🔨 Currently Building{" "}
+                  <span className="text-xs opacity-60">({currentlyBuilding.length}/100)</span>
+                </span>
+              </label>
+              <input
+                id="edit-building"
+                type="text"
+                value={currentlyBuilding}
+                maxLength={100}
+                className="input input-bordered w-full"
+                onChange={(e) => setCurrentlyBuilding(e.target.value)}
+                placeholder="e.g. A real-time collaboration tool for developers"
+              />
+            </div>
+
+            {/* ===== AVAILABILITY ===== */}
+            <div className="form-control">
+              <label className="label" htmlFor="edit-availability">
+                <span className="label-text">🕐 Availability</span>
+              </label>
+              <select
+                id="edit-availability"
+                value={availability}
+                className="select select-bordered w-full"
+                onChange={(e) => setAvailability(e.target.value)}
+              >
+                {AVAILABILITY_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value} disabled={opt.value === ""}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* ===== SOCIAL LINKS ===== */}
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">🔗 Social & Portfolio Links</span>
+              </label>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm opacity-60 w-20">LinkedIn</span>
+                  <input
+                    type="url"
+                    value={socialLinks.linkedin}
+                    onChange={(e) => setSocialLinks({ ...socialLinks, linkedin: e.target.value })}
+                    placeholder="https://linkedin.com/in/username"
+                    className="input input-bordered input-sm flex-1"
+                    aria-label="LinkedIn profile URL"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm opacity-60 w-20">Twitter/X</span>
+                  <input
+                    type="url"
+                    value={socialLinks.twitter}
+                    onChange={(e) => setSocialLinks({ ...socialLinks, twitter: e.target.value })}
+                    placeholder="https://twitter.com/username"
+                    className="input input-bordered input-sm flex-1"
+                    aria-label="Twitter profile URL"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm opacity-60 w-20">Website</span>
+                  <input
+                    type="url"
+                    value={socialLinks.website}
+                    onChange={(e) => setSocialLinks({ ...socialLinks, website: e.target.value })}
+                    placeholder="https://yourportfolio.com"
+                    className="input input-bordered input-sm flex-1"
+                    aria-label="Personal website URL"
+                  />
+                </div>
+              </div>
             </div>
 
             {/* ===== TECH STACK / SKILLS ===== */}
