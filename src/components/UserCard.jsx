@@ -1,51 +1,53 @@
-import axios from "axios";
-import React from "react";
-import { BASE_URL } from "../utils/constants";
-import { useDispatch } from "react-redux";
-import { removeUserFromFeed } from "../utils/feedSlice";
+import { useState } from "react";
 
-const UserCard = ({ user }) => {
-  const { firstName, lastName, age, about, gender, photoUrl, _id} = user;
+const UserCard = ({ user, onSwipe }) => {
+  const { firstName, lastName, age, about, gender, photoUrl, _id } = user;
+  const [actionLoading, setActionLoading] = useState("");
 
-  const dispatch = useDispatch();
-
-  const handleSendRequest = async (status, userId) => {
-    try {
-      const res = await axios.post(
-        BASE_URL + "/request/send/" + status + "/" + userId,
-        {},
-        { withCredentials: true }
-      );
-         dispatch(removeUserFromFeed(userId));
-    } catch (error) {
-      
-    }
-    
+  const handleSendRequest = async (status) => {
+    if (!onSwipe) return;
+    setActionLoading(status);
+    await onSwipe(status, _id);
+    setActionLoading("");
   };
-   
 
   return (
     <div className="card bg-base-300 w-96 shadow-xl">
       <figure>
-        <img src={photoUrl} alt="user photoUrl" />
-      
+        <img
+          src={photoUrl}
+          alt={`${firstName} ${lastName}'s profile photo`}
+          className="w-full h-64 object-cover"
+        />
       </figure>
       <div className="card-body">
-        <h2 className="card-title">{firstName + " " + lastName}</h2>
-        {age && gender && <p>{age + " ," + gender} </p>}
-        <p>{about}</p>
-        <div className="card-actions justify-end m-10 ">
+        <h2 className="card-title">{firstName} {lastName}</h2>
+        {age && gender && <p className="opacity-70">{age}, {gender}</p>}
+        {about && <p className="text-sm">{about}</p>}
+        <div className="card-actions justify-center mt-6 gap-4">
           <button
-            className="px-4 py-2 text-white bg-blue-500 rounded transition duration-300 hover:bg-blue-600"
-            onClick={() => handleSendRequest("interested", _id)}
+            className="btn btn-error btn-md px-6"
+            onClick={() => handleSendRequest("ignored")}
+            disabled={!!actionLoading}
+            aria-label={`Ignore ${firstName}`}
           >
-            Interested
+            {actionLoading === "ignored" ? (
+              <span className="loading loading-spinner loading-xs" />
+            ) : (
+              "Ignore"
+            )}
           </button>
           <button
-            className="px-4 py-2 text-white bg-pink-500 rounded transition duration-300 hover:bg-red-500"
-            onClick={() => handleSendRequest("ignored", _id)}
+            className="btn btn-success btn-md px-6"
+            onClick={() => handleSendRequest("interested")}
+            disabled={!!actionLoading}
+            aria-label={`Show interest in ${firstName}`}
           >
-            ignored
+            {actionLoading === "interested" ? (
+              <span className="loading loading-spinner loading-xs" />
+            ) : (
+              "Interested"
+            )}
           </button>
         </div>
       </div>

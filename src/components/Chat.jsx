@@ -7,21 +7,30 @@ const Chat = () => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const socketRef = useRef(null);
+  const messagesEndRef = useRef(null);
 
   const { targetId } = useParams();
   const user = useSelector((state) => state.user);
   const userId = user?._id;
+
+  // Auto-scroll to latest message
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   useEffect(() => {
     if (!userId) return;
     const socket = createSocketConnection();
     socketRef.current = socket;
 
-    // As soon as the page loaded, the socket connection is made and joinChat event is emitted
     socket.emit("joinChat", { firstName: user?.firstName, userId, targetId });
 
     socket.on("messageReceived", ({ firstName, lastName, text }) => {
-      setMessages((messages) => [...messages, { firstName, lastName, text }]);
+      setMessages((prev) => [...prev, { firstName, lastName, text, time: new Date() }]);
     });
 
     return () => {
@@ -44,43 +53,98 @@ const Chat = () => {
     setNewMessage("");
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  };
+
+  const formatTime = (date) => {
+    if (!date) return "";
+    return new Date(date).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   return (
-    <div className="w-3/4 mx-auto border border-gray-600 m-5 h-[70vh] flex flex-col">
-      <h1 className="p-5 border-b border-gray-600">Chat</h1>
-      <div className="flex-1 overflow-scroll p-5">
+    <section
+      className="w-full max-w-3xl mx-auto border border-base-content/20 m-5 h-[70vh] flex flex-col rounded-lg overflow-hidden"
+      aria-label="Chat conversation"
+    >
+      {/* Chat Header */}
+      <header className="p-4 border-b border-base-content/20 bg-base-200">
+        <h1 className="text-lg font-semibold">Chat</h1>
+      </header>
+
+      {/* Messages Area */}
+      <div
+        className="flex-1 overflow-y-auto p-5 space-y-2"
+        role="log"
+        aria-label="Message history"
+        aria-live="polite"
+      >
+        {messages.length === 0 && (
+          <p className="text-center text-base-content/50 mt-10">
+            No messages yet. Start the conversation!
+          </p>
+        )}
+
         {messages.map((msg, index) => {
+          const isOwn = user.firstName === msg.firstName;
           return (
             <div
               key={index}
-              className={
-                "chat " +
-                (user.firstName === msg.firstName ? "chat-end" : "chat-start")
-              }
+              className={`chat ${isOwn ? "chat-end" : "chat-start"}`}
             >
-              <div className="chat-header">
-                {`${msg.firstName}  ${msg.lastName}`}
-                <time className="text-xs opacity-50"> 2 hours ago</time>
+              <div className="chat-header text-xs opacity-70">
+                {`${msg.firstName} ${msg.lastName}`}
+                {msg.time && (
+                  <time className="ml-2 opacity-50" dateTime={msg.time.toISOString?.() || ""}>
+                    {formatTime(msg.time)}
+                  </time>
+                )}
               </div>
               <div className="chat-bubble">{msg.text}</div>
-              <div className="chat-footer opacity-50">Seen</div>
             </div>
           );
         })}
+        <div ref={messagesEndRef} />
       </div>
-      <div className="p-5 border-t border-gray-600 flex items-center gap-2">
+
+      {/* Input Area */}
+      <form
+        className="p-4 border-t border-base-content/20 flex items-center gap-2"
+        onSubmit={(e) => {
+          e.preventDefault();
+          sendMessage();
+        }}
+      >
+        <label htmlFor="chat-input" className="sr-only">
+          Type your message
+        </label>
         <input
+          id="chat-input"
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+          onKeyDown={handleKeyDown}
           type="text"
           placeholder="Type your message here..."
-          className="flex-1 border border-gray-500 text-white rounded p-2"
+          className="flex-1 input input-bordered"
+          aria-label="Message input"
+          autoComplete="off"
         />
-        <button onClick={sendMessage} className="btn btn-secondary">
+        <button
+          type="submit"
+          className="btn btn-secondary"
+          disabled={!newMessage.trim()}
+          aria-label="Send message"
+        >
           Send
         </button>
-      </div>
-    </div>
+      </form>
+    </section>
   );
 };
 
