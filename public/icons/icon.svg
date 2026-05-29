@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="256" fill="#661ae6"/>
+  <!-- Code brackets -->
+  <path d="M160 180l-60 76 60 76" stroke="white" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M352 180l60 76-60 76" stroke="white" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Heart -->
+  <path d="M256 350c-8-8-80-60-80-110 0-30 25-55 55-55 18 0 25 15 25 15s7-15 25-15c30 0 55 25 55 55 0 50-72 102-80 110z" fill="#f472b6"/>
+  <!-- Slash -->
+  <path d="M230 160l52 192" stroke="white" stroke-width="16" stroke-linecap="round" opacity="0.6"/>
+</svg>

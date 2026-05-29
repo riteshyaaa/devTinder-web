@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
 import {
   validateEmail,
@@ -197,6 +198,12 @@ const Login = () => {
             <div className="alert alert-error mt-2 py-2">
               <span>{error}</span>
             </div>
+          )}
+
+          {isLogin && (
+            <Link to="/forgot-password" className="text-xs text-primary text-right hover:underline mt-1">
+              Forgot password?
+            </Link>
           )}
 
           <div className="form-control mt-4">

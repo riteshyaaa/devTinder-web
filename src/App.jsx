@@ -19,6 +19,8 @@ const ActivityFeed = lazy(() => import("./components/ActivityFeed"));
 const LandingPage = lazy(() => import("./components/LandingPage"));
 const CodingChallenges = lazy(() => import("./components/CodingChallenges"));
 const ProfileAnalytics = lazy(() => import("./components/ProfileAnalytics"));
+const NotFound = lazy(() => import("./components/NotFound"));
+const ForgotPassword = lazy(() => import("./components/ForgotPassword"));
 
 function App() {
   return (
@@ -35,6 +37,7 @@ function App() {
               <Route path="/" element={<Body />}>
                 <Route index element={<Feed />} />
                 <Route path="login" element={<Login />} />
+                <Route path="forgot-password" element={<ForgotPassword />} />
                 <Route path="profile" element={<Profile />} />
                 <Route path="connections" element={<Connections />} />
                 <Route path="requests" element={<Requests />} />
@@ -43,6 +46,9 @@ function App() {
                 <Route path="activity" element={<ActivityFeed />} />
                 <Route path="challenges" element={<CodingChallenges />} />
                 <Route path="analytics" element={<ProfileAnalytics />} />
+
+                {/* 404 Catch-all */}
+                <Route path="*" element={<NotFound />} />
               </Route>
             </Routes>
           </Suspense>

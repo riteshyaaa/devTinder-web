@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useDispatch } from "react-redux";
 import UserCard from "./UserCard";
 import { updateProfile, getErrorMessage } from "../services/api";
+import { uploadImage } from "../services/cloudinary";
 import { addUser } from "../utils/userSlice";
 import {
   validateFirstName,
@@ -60,8 +61,32 @@ const EditProfile = ({ user }) => {
   const [serverError, setServerError] = useState("");
   const [showToast, setShowToast] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const photoInputRef = useRef(null);
 
   const dispatch = useDispatch();
+
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingPhoto(true);
+    setUploadProgress(0);
+    try {
+      const result = await uploadImage(file, {
+        folder: "devtinder/profiles",
+        onProgress: (percent) => setUploadProgress(percent),
+      });
+      setPhotoUrl(result.url);
+      if (fieldErrors.photoUrl) setFieldErrors((prev) => ({ ...prev, photoUrl: "" }));
+    } catch (err) {
+      setFieldErrors((prev) => ({ ...prev, photoUrl: err.message }));
+    } finally {
+      setUploadingPhoto(false);
+      setUploadProgress(0);
+      if (photoInputRef.current) photoInputRef.current.value = "";
+    }
+  };
 
   const validateForm = () => {
     const errors = {};
@@ -281,21 +306,41 @@ const EditProfile = ({ user }) => {
               </select>
             </div>
 
-            {/* Photo URL */}
+            {/* Photo URL + Upload */}
             <div className="form-control">
               <label className="label" htmlFor="edit-photoUrl">
-                <span className="label-text">Photo URL</span>
+                <span className="label-text">Profile Photo</span>
               </label>
+              <div className="flex gap-2">
+                <input
+                  id="edit-photoUrl"
+                  type="url"
+                  value={photoUrl}
+                  className={`input input-bordered flex-1 ${fieldErrors.photoUrl ? "input-error" : ""}`}
+                  onChange={handleFieldChange(setPhotoUrl, "photoUrl")}
+                  placeholder="https://example.com/photo.jpg"
+                  aria-invalid={!!fieldErrors.photoUrl}
+                  aria-describedby={fieldErrors.photoUrl ? "edit-photoUrl-error" : undefined}
+                />
+                <button
+                  type="button"
+                  className="btn btn-outline btn-sm"
+                  onClick={() => photoInputRef.current?.click()}
+                  disabled={uploadingPhoto}
+                >
+                  {uploadingPhoto ? <span className="loading loading-spinner loading-xs" /> : "📷 Upload"}
+                </button>
+              </div>
               <input
-                id="edit-photoUrl"
-                type="url"
-                value={photoUrl}
-                className={`input input-bordered w-full ${fieldErrors.photoUrl ? "input-error" : ""}`}
-                onChange={handleFieldChange(setPhotoUrl, "photoUrl")}
-                placeholder="https://example.com/photo.jpg"
-                aria-invalid={!!fieldErrors.photoUrl}
-                aria-describedby={fieldErrors.photoUrl ? "edit-photoUrl-error" : undefined}
+                ref={photoInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handlePhotoUpload}
               />
+              {uploadProgress > 0 && uploadProgress < 100 && (
+                <progress className="progress progress-primary w-full mt-1" value={uploadProgress} max="100" />
+              )}
               {fieldErrors.photoUrl && (
                 <span id="edit-photoUrl-error" className="text-error text-xs mt-1">
                   {fieldErrors.photoUrl}
