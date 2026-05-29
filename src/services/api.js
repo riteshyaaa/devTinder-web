@@ -42,14 +42,15 @@ export const updateProfile = (profileData) =>
 // ==================== FEED APIs ====================
 
 /**
- * Fetch feed with optional filters.
- * @param {Object} filters - { skills: [], experienceLevel: "", location: "" }
+ * Fetch feed with optional filters and smart matching.
+ * @param {Object} filters - { skills: [], experienceLevel: "", location: "", smartMatch: bool }
  */
 export const fetchFeed = (filters = {}) => {
   const params = {};
   if (filters.skills?.length > 0) params.skills = filters.skills.join(",");
   if (filters.experienceLevel) params.experienceLevel = filters.experienceLevel;
   if (filters.location) params.location = filters.location;
+  if (filters.smartMatch) params.smartMatch = "true";
   return api.get("/feed", { params });
 };
 

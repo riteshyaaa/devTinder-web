@@ -13,6 +13,26 @@ import {
 
 const GENDER_OPTIONS = ["male", "female", "non-binary", "prefer not to say"];
 
+const SKILL_OPTIONS = [
+  "JavaScript", "TypeScript", "React", "Angular", "Vue", "Svelte",
+  "Node.js", "Express", "Python", "Django", "Flask", "FastAPI",
+  "Java", "Spring Boot", "Go", "Rust", "C++", "C#", ".NET",
+  "Ruby", "Rails", "PHP", "Laravel", "Swift", "Kotlin",
+  "Docker", "Kubernetes", "AWS", "Azure", "GCP",
+  "MongoDB", "PostgreSQL", "MySQL", "Redis", "Firebase",
+  "GraphQL", "REST API", "gRPC", "Next.js", "Nuxt.js",
+  "Tailwind CSS", "Sass", "Git", "CI/CD", "Linux",
+  "Machine Learning", "TensorFlow", "React Native", "Flutter", "Electron",
+];
+
+const EXPERIENCE_LEVELS = [
+  { value: "", label: "Select level" },
+  { value: "junior", label: "Junior (0-2 years)" },
+  { value: "mid", label: "Mid-Level (2-5 years)" },
+  { value: "senior", label: "Senior (5-10 years)" },
+  { value: "lead", label: "Lead / Staff (10+ years)" },
+];
+
 const EditProfile = ({ user }) => {
   const [firstName, setFirstName] = useState(user?.firstName || "");
   const [lastName, setLastName] = useState(user?.lastName || "");
@@ -20,6 +40,10 @@ const EditProfile = ({ user }) => {
   const [about, setAbout] = useState(user?.about || "");
   const [photoUrl, setPhotoUrl] = useState(user?.photoUrl || "");
   const [gender, setGender] = useState(user?.gender || "");
+  const [skills, setSkills] = useState(user?.skills || []);
+  const [experienceLevel, setExperienceLevel] = useState(user?.experienceLevel || "");
+  const [location, setLocation] = useState(user?.location || "");
+  const [skillSearch, setSkillSearch] = useState("");
   const [fieldErrors, setFieldErrors] = useState({});
   const [serverError, setServerError] = useState("");
   const [showToast, setShowToast] = useState(false);
@@ -53,6 +77,33 @@ const EditProfile = ({ user }) => {
     if (serverError) setServerError("");
   };
 
+  const handleSkillToggle = (skill) => {
+    setSkills((prev) =>
+      prev.includes(skill)
+        ? prev.filter((s) => s !== skill)
+        : prev.length < 15
+        ? [...prev, skill]
+        : prev
+    );
+  };
+
+  const handleCustomSkill = (e) => {
+    if (e.key === "Enter" && skillSearch.trim()) {
+      e.preventDefault();
+      const custom = skillSearch.trim();
+      if (!skills.includes(custom) && skills.length < 15) {
+        setSkills([...skills, custom]);
+      }
+      setSkillSearch("");
+    }
+  };
+
+  const filteredSkillOptions = SKILL_OPTIONS.filter(
+    (s) =>
+      s.toLowerCase().includes(skillSearch.toLowerCase()) &&
+      !skills.includes(s)
+  );
+
   const saveProfile = async (e) => {
     e.preventDefault();
     setServerError("");
@@ -67,6 +118,9 @@ const EditProfile = ({ user }) => {
         about: about.trim(),
         photoUrl: photoUrl.trim(),
         gender,
+        skills,
+        experienceLevel,
+        location: location.trim(),
       });
       dispatch(addUser(res.data.data));
       setShowToast(true);
@@ -82,7 +136,7 @@ const EditProfile = ({ user }) => {
     <>
       <div className="flex flex-col lg:flex-row justify-center items-start my-10 gap-8 px-4">
         {/* Edit Form */}
-        <div className="card bg-base-300 w-full max-w-md shadow-xl">
+        <div className="card bg-base-300 w-full max-w-lg shadow-xl">
           <form className="card-body" onSubmit={saveProfile} noValidate>
             <h2 className="card-title text-2xl font-bold justify-center">
               Edit Profile
@@ -154,7 +208,7 @@ const EditProfile = ({ user }) => {
               )}
             </div>
 
-            {/* Gender - Dropdown */}
+            {/* Gender */}
             <div className="form-control">
               <label className="label" htmlFor="edit-gender">
                 <span className="label-text">Gender</span>
@@ -164,14 +218,45 @@ const EditProfile = ({ user }) => {
                 value={gender}
                 className="select select-bordered w-full"
                 onChange={(e) => setGender(e.target.value)}
-                aria-label="Select your gender"
               >
-                <option value="" disabled>
-                  Select gender
-                </option>
+                <option value="" disabled>Select gender</option>
                 {GENDER_OPTIONS.map((option) => (
                   <option key={option} value={option}>
                     {option.charAt(0).toUpperCase() + option.slice(1)}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Location */}
+            <div className="form-control">
+              <label className="label" htmlFor="edit-location">
+                <span className="label-text">Location</span>
+              </label>
+              <input
+                id="edit-location"
+                type="text"
+                value={location}
+                className="input input-bordered w-full"
+                onChange={(e) => setLocation(e.target.value)}
+                placeholder="e.g. San Francisco, Remote, India"
+              />
+            </div>
+
+            {/* Experience Level */}
+            <div className="form-control">
+              <label className="label" htmlFor="edit-experience">
+                <span className="label-text">Experience Level</span>
+              </label>
+              <select
+                id="edit-experience"
+                value={experienceLevel}
+                className="select select-bordered w-full"
+                onChange={(e) => setExperienceLevel(e.target.value)}
+              >
+                {EXPERIENCE_LEVELS.map((level) => (
+                  <option key={level.value} value={level.value} disabled={level.value === ""}>
+                    {level.label}
                   </option>
                 ))}
               </select>
@@ -203,10 +288,7 @@ const EditProfile = ({ user }) => {
             <div className="form-control">
               <label className="label" htmlFor="edit-about">
                 <span className="label-text">
-                  About{" "}
-                  <span className="text-xs opacity-60">
-                    ({about.length}/300)
-                  </span>
+                  About <span className="text-xs opacity-60">({about.length}/300)</span>
                 </span>
               </label>
               <textarea
@@ -225,6 +307,63 @@ const EditProfile = ({ user }) => {
                   {fieldErrors.about}
                 </span>
               )}
+            </div>
+
+            {/* ===== TECH STACK / SKILLS ===== */}
+            <div className="form-control">
+              <label className="label" htmlFor="edit-skills-search">
+                <span className="label-text">
+                  Tech Stack{" "}
+                  <span className="text-xs opacity-60">({skills.length}/15 selected)</span>
+                </span>
+              </label>
+
+              {/* Selected Skills */}
+              {skills.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mb-2">
+                  {skills.map((skill) => (
+                    <span
+                      key={skill}
+                      className="badge badge-primary gap-1 cursor-pointer hover:badge-error transition-colors"
+                      onClick={() => handleSkillToggle(skill)}
+                      role="button"
+                      aria-label={`Remove ${skill}`}
+                    >
+                      {skill}
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* Search + Add Custom */}
+              <input
+                id="edit-skills-search"
+                type="text"
+                value={skillSearch}
+                onChange={(e) => setSkillSearch(e.target.value)}
+                onKeyDown={handleCustomSkill}
+                placeholder="Search skills or type custom + Enter..."
+                className="input input-bordered input-sm w-full"
+              />
+
+              {/* Skill Options (filtered) */}
+              <div className="flex flex-wrap gap-1.5 mt-2 max-h-32 overflow-y-auto">
+                {filteredSkillOptions.slice(0, 20).map((skill) => (
+                  <button
+                    key={skill}
+                    type="button"
+                    onClick={() => handleSkillToggle(skill)}
+                    className="badge badge-outline badge-sm cursor-pointer hover:badge-primary transition-colors"
+                    disabled={skills.length >= 15}
+                    aria-label={`Add ${skill}`}
+                  >
+                    + {skill}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Server Error */}
@@ -252,10 +391,10 @@ const EditProfile = ({ user }) => {
         </div>
 
         {/* Live Preview */}
-        <div className="hidden lg:block">
+        <div className="hidden lg:block sticky top-20">
           <p className="text-center text-sm opacity-60 mb-2">Live Preview</p>
           <UserCard
-            user={{ firstName, lastName, age, photoUrl, gender, about }}
+            user={{ firstName, lastName, age, photoUrl, gender, about, skills }}
           />
         </div>
       </div>
