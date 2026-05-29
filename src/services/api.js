@@ -51,6 +51,7 @@ export const fetchFeed = (filters = {}) => {
   if (filters.experienceLevel) params.experienceLevel = filters.experienceLevel;
   if (filters.location) params.location = filters.location;
   if (filters.smartMatch) params.smartMatch = "true";
+  if (filters.sortBy) params.sortBy = filters.sortBy;
   return api.get("/feed", { params });
 };
 
