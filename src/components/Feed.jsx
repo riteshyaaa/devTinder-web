@@ -10,23 +10,18 @@ const Feed = () => {
   const dispatch = useDispatch();
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    if (error) {
-      alert(error); // Simple alert for error
-      setError(""); // Clear error after showing
-    }
-  }, [error]);
   const getFeed = async () => {
-    if (feed ) return ;
-   ;
+    if (feed) return;
     try {
       const res = await axios.get(BASE_URL + "/feed", {
         withCredentials: true,
       });
 
       dispatch(addFeed(res.data));
-    } catch (error) {
-      setError(error);
+    } catch (err) {
+      const message =
+        err?.response?.data?.error || err?.message || "Failed to load feed";
+      setError(message);
     }
   };
 
@@ -34,14 +29,13 @@ const Feed = () => {
     getFeed();
   }, []);
 
-  if(!feed) return ;
-  if(feed.length <= 0) return <div className="text-center text-2xl">No more users found</div>;
+  if (error) return <div className="text-center text-red-500 text-xl my-10">{error}</div>;
+  if (!feed) return;
+  if (feed.length <= 0) return <div className="text-center text-2xl my-10">No more users found</div>;
   return (
-    feed && (
-      <div className="flex justify-center my-10 ">
-        <UserCard user={feed[0]} />
-      </div>
-    )
+    <div className="flex justify-center my-10">
+      <UserCard user={feed[0]} />
+    </div>
   );
 };
 
