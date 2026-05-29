@@ -57,6 +57,18 @@ export const fetchFeed = (filters = {}) => {
 export const sendConnectionRequest = (status, userId) =>
   api.post(`/request/send/${status}/${userId}`, {});
 
+/**
+ * Send a "Super Like" — limited daily, shows high interest.
+ */
+export const sendSuperLike = (userId) =>
+  api.post(`/request/send/superlike/${userId}`, {});
+
+/**
+ * Boost your profile for 30 minutes (increased visibility).
+ */
+export const boostProfile = () =>
+  api.post("/profile/boost", {});
+
 export const undoLastSwipe = (userId) =>
   api.post(`/request/undo/${userId}`, {});
 
