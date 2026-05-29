@@ -3,11 +3,14 @@ import { Outlet, useLocation } from "react-router-dom";
 import Footer from "./Footer";
 import NavBar from "./NavBar";
 import LandingPage from "./LandingPage";
+import ToastNotifications from "./ToastNotifications";
 import useAuth from "../hooks/useAuth";
+import useNotifications from "../hooks/useNotifications";
 import { Spinner } from "./Shimmer";
 
 const Body = () => {
   const { user, loading, fetchUser } = useAuth();
+  const { toasts, dismissToast } = useNotifications();
   const location = useLocation();
 
   useEffect(() => {
@@ -31,6 +34,9 @@ const Body = () => {
         <Outlet />
       </main>
       <Footer />
+
+      {/* Real-time Toast Notifications */}
+      <ToastNotifications toasts={toasts} onDismiss={dismissToast} />
     </div>
   );
 };
