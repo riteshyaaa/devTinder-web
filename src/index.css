@@ -2,3 +2,115 @@
 @tailwind components;
 @tailwind utilities;
 @plugin "daisyui";
+
+/* ===== MICRO-ANIMATIONS ===== */
+
+/* Button press effect — all buttons get a subtle scale-down on click */
+@layer components {
+  .btn {
+    @apply transition-all duration-150 ease-out;
+  }
+  .btn:active:not(:disabled) {
+    transform: scale(0.95);
+  }
+  .btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  .btn:active:not(:disabled) {
+    transform: scale(0.95) translateY(0);
+    box-shadow: none;
+  }
+}
+
+/* Badge hover pulse */
+.badge {
+  @apply transition-transform duration-150;
+}
+.badge:hover {
+  transform: scale(1.05);
+}
+
+/* Card hover lift */
+.card {
+  @apply transition-shadow duration-200;
+}
+.card:hover {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+/* Input focus glow */
+.input:focus,
+.textarea:focus,
+.select:focus {
+  box-shadow: 0 0 0 3px rgba(102, 26, 230, 0.1);
+}
+
+/* Link hover underline animation */
+a:not(.btn):not(.badge):hover {
+  text-decoration-color: currentColor;
+}
+
+/* Smooth scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(128, 128, 128, 0.3);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(128, 128, 128, 0.5);
+}
+
+/* ===== PULL-TO-REFRESH ===== */
+.pull-to-refresh {
+  overscroll-behavior-y: contain;
+}
+
+/* Mirror video (local camera preview) */
+.mirror {
+  transform: scaleX(-1);
+}
+
+/* ===== PAGE TRANSITION SMOOTHNESS ===== */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Prevent layout shift during page transitions */
+main {
+  min-height: calc(100vh - 8rem);
+}
+
+/* ===== MOBILE OPTIMIZATIONS ===== */
+@media (max-width: 640px) {
+  /* Larger tap targets on mobile */
+  .btn-sm {
+    min-height: 2.5rem;
+    min-width: 2.5rem;
+  }
+
+  /* Disable hover effects on touch devices */
+  @media (hover: none) {
+    .btn:hover:not(:disabled) {
+      transform: none;
+      box-shadow: none;
+    }
+    .card:hover {
+      box-shadow: none;
+    }
+  }
+}
+
+/* ===== SAFE AREA (notch support) ===== */
+.navbar {
+  padding-top: env(safe-area-inset-top);
+}
+footer {
+  padding-bottom: env(safe-area-inset-bottom);
+}

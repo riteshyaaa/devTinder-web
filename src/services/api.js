@@ -96,11 +96,21 @@ export const applyToProject = (projectId) =>
 
 // ==================== CONNECTIONS APIs ====================
 
-export const fetchConnections = () => api.get("/user/connections");
+/**
+ * Fetch connections with pagination support.
+ * @param {number} page - Page number (default 1)
+ * @param {number} limit - Items per page (default 20)
+ */
+export const fetchConnections = (page = 1, limit = 20) =>
+  api.get("/user/connections", { params: { page, limit } });
 
 // ==================== REQUESTS APIs ====================
 
-export const fetchReceivedRequests = () => api.get("/user/requests/received");
+/**
+ * Fetch received requests with pagination support.
+ */
+export const fetchReceivedRequests = (page = 1, limit = 20) =>
+  api.get("/user/requests/received", { params: { page, limit } });
 
 export const reviewConnectionRequest = (status, requestId) =>
   api.post(`/request/review/${status}/${requestId}`, {});

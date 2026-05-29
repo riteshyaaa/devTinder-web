@@ -1,17 +1,34 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import useConnections from "../hooks/useConnections";
 import { getSocket } from "../utils/socket";
-import { ListSkeleton, ErrorState, EmptyState } from "./Shimmer";
+import { ListSkeleton, ErrorState, EmptyState, ListItemSkeleton } from "./Shimmer";
+import Avatar from "./Avatar";
 
 const Connections = () => {
   const { connections, loading, error, getConnections, retry } = useConnections();
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState("name"); // "name" | "recent"
+  const [sortBy, setSortBy] = useState("name");
   const [onlineUsers, setOnlineUsers] = useState(new Set());
+  const [visibleCount, setVisibleCount] = useState(10); // Infinite scroll batch size
+  const [loadingMore, setLoadingMore] = useState(false);
+  const sentinelRef = useRef(null);
+  const searchTimeoutRef = useRef(null);
+  const [debouncedQuery, setDebouncedQuery] = useState("");
 
   useEffect(() => {
     getConnections();
+  }, []);
+
+  // Debounced search (300ms)
+  const handleSearchChange = useCallback((e) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+    searchTimeoutRef.current = setTimeout(() => {
+      setDebouncedQuery(value);
+      setVisibleCount(10); // Reset pagination on new search
+    }, 300);
   }, []);
 
   // Listen for online status updates
@@ -30,7 +47,6 @@ const Connections = () => {
       });
     });
 
-    // Request online status for all connections
     socket.on("onlineUsers", ({ users }) => {
       setOnlineUsers(new Set(users));
     });
@@ -53,9 +69,8 @@ const Connections = () => {
 
     let result = [...connections];
 
-    // Search filter
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
+    if (debouncedQuery.trim()) {
+      const query = debouncedQuery.toLowerCase();
       result = result.filter(
         (c) =>
           c.firstName?.toLowerCase().includes(query) ||
@@ -65,11 +80,9 @@ const Connections = () => {
       );
     }
 
-    // Sort
     if (sortBy === "name") {
       result.sort((a, b) => (a.firstName || "").localeCompare(b.firstName || ""));
     } else if (sortBy === "recent") {
-      // Online users first, then by name
       result.sort((a, b) => {
         const aOnline = onlineUsers.has(a._id) ? 0 : 1;
         const bOnline = onlineUsers.has(b._id) ? 0 : 1;
@@ -79,7 +92,37 @@ const Connections = () => {
     }
 
     return result;
-  }, [connections, searchQuery, sortBy, onlineUsers]);
+  }, [connections, debouncedQuery, sortBy, onlineUsers]);
+
+  // Paginated slice for infinite scroll
+  const visibleConnections = useMemo(
+    () => filteredConnections.slice(0, visibleCount),
+    [filteredConnections, visibleCount]
+  );
+  const hasMore = visibleCount < filteredConnections.length;
+
+  // Intersection Observer for infinite scroll
+  useEffect(() => {
+    const node = sentinelRef.current;
+    if (!node) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loadingMore) {
+          setLoadingMore(true);
+          // Simulate slight delay for smooth UX
+          setTimeout(() => {
+            setVisibleCount((prev) => prev + 10);
+            setLoadingMore(false);
+          }, 200);
+        }
+      },
+      { rootMargin: "200px" }
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [hasMore, loadingMore, visibleCount]);
 
   if (loading && !connections) {
     return <ListSkeleton count={4} />;
@@ -116,17 +159,12 @@ const Connections = () => {
               stroke="currentColor"
               aria-hidden="true"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
             <input
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={handleSearchChange}
               placeholder="Search by name or skill..."
               className="input input-bordered input-sm w-full pl-9"
               aria-label="Search connections"
@@ -145,20 +183,20 @@ const Connections = () => {
       </div>
 
       {/* Results count */}
-      {searchQuery && (
+      {debouncedQuery && (
         <p className="text-xs opacity-60 mb-3">
           {filteredConnections.length} result{filteredConnections.length !== 1 ? "s" : ""} found
         </p>
       )}
 
-      {/* Connection List */}
+      {/* Connection List with Infinite Scroll */}
       {filteredConnections.length === 0 ? (
         <div className="text-center py-10 opacity-60">
-          <p>No connections match "{searchQuery}"</p>
+          <p>No connections match "{debouncedQuery}"</p>
         </div>
       ) : (
         <div className="space-y-3">
-          {filteredConnections.map((connection) => {
+          {visibleConnections.map((connection) => {
             const { firstName, lastName, age, gender, photoUrl, about, skills, _id } = connection;
             const isOnline = onlineUsers.has(_id);
 
@@ -167,20 +205,14 @@ const Connections = () => {
                 className="bg-base-200 flex items-center rounded-lg p-3 gap-3 hover:bg-base-300 transition-colors"
                 key={_id}
               >
-                {/* Avatar with online indicator */}
-                <div className="relative flex-shrink-0">
-                  <img
-                    className="w-14 h-14 rounded-full object-cover"
-                    src={photoUrl}
-                    alt={`${firstName} ${lastName}'s profile photo`}
-                  />
-                  <span
-                    className={`absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-base-200 ${
-                      isOnline ? "bg-success" : "bg-base-content/30"
-                    }`}
-                    aria-label={isOnline ? "Online" : "Offline"}
-                  />
-                </div>
+                {/* Avatar with online indicator + initials fallback */}
+                <Avatar
+                  firstName={firstName}
+                  lastName={lastName}
+                  photoUrl={photoUrl}
+                  size="md"
+                  isOnline={isOnline}
+                />
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
@@ -221,6 +253,20 @@ const Connections = () => {
               </div>
             );
           })}
+
+          {/* Infinite scroll sentinel + loading indicator */}
+          {hasMore && (
+            <div ref={sentinelRef} className="py-4">
+              {loadingMore && <ListItemSkeleton />}
+            </div>
+          )}
+
+          {/* End of list indicator */}
+          {!hasMore && filteredConnections.length > 10 && (
+            <p className="text-center text-xs opacity-40 py-4">
+              — You've reached the end —
+            </p>
+          )}
         </div>
       )}
     </div>
