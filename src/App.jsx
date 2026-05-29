@@ -1,36 +1,50 @@
+import { lazy, Suspense } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-
-import Login from "./components/Login";
-import Body from "./components/Body";
-import Profile from "./components/Profile";
 import { Provider } from "react-redux";
 import appStore from "./utils/appStore";
-import Feed from "./components/Feed";
-import Connections from "./components/Connections";
-import Requests from "./components/Requests";
-import Chat from "./components/Chat";
-import Onboarding from "./components/Onboarding";
+import ErrorBoundary from "./components/ErrorBoundary";
+import { Spinner } from "./components/Shimmer";
+
+// Lazy-loaded components for code splitting
+const Body = lazy(() => import("./components/Body"));
+const Feed = lazy(() => import("./components/Feed"));
+const Login = lazy(() => import("./components/Login"));
+const Profile = lazy(() => import("./components/Profile"));
+const Connections = lazy(() => import("./components/Connections"));
+const Requests = lazy(() => import("./components/Requests"));
+const Chat = lazy(() => import("./components/Chat"));
+const Onboarding = lazy(() => import("./components/Onboarding"));
+const ProjectBoard = lazy(() => import("./components/ProjectBoard"));
+const ActivityFeed = lazy(() => import("./components/ActivityFeed"));
+const LandingPage = lazy(() => import("./components/LandingPage"));
 
 function App() {
   return (
-    <Provider store={appStore}>
-      <BrowserRouter basename="/">
-        <Routes>
-          {/* Onboarding - standalone page without NavBar/Footer */}
-          <Route path="/onboarding" element={<Onboarding />} />
+    <ErrorBoundary>
+      <Provider store={appStore}>
+        <BrowserRouter basename="/">
+          <Suspense fallback={<Spinner text="Loading..." />}>
+            <Routes>
+              {/* Standalone pages (no NavBar/Footer) */}
+              <Route path="/onboarding" element={<Onboarding />} />
+              <Route path="/welcome" element={<LandingPage />} />
 
-          {/* Main app layout with NavBar and Footer */}
-          <Route path="/" element={<Body />}>
-            <Route index element={<Feed />} />
-            <Route path="login" element={<Login />} />
-            <Route path="profile" element={<Profile />} />
-            <Route path="connections" element={<Connections />} />
-            <Route path="requests" element={<Requests />} />
-            <Route path="chat/:targetId" element={<Chat />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
-    </Provider>
+              {/* Main app layout */}
+              <Route path="/" element={<Body />}>
+                <Route index element={<Feed />} />
+                <Route path="login" element={<Login />} />
+                <Route path="profile" element={<Profile />} />
+                <Route path="connections" element={<Connections />} />
+                <Route path="requests" element={<Requests />} />
+                <Route path="chat/:targetId" element={<Chat />} />
+                <Route path="projects" element={<ProjectBoard />} />
+                <Route path="activity" element={<ActivityFeed />} />
+              </Route>
+            </Routes>
+          </Suspense>
+        </BrowserRouter>
+      </Provider>
+    </ErrorBoundary>
   );
 }
 

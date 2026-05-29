@@ -1,30 +1,34 @@
-import { useCallback, useState } from "react";
+import { useCallback, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { addFeed, removeUserFromFeed } from "../utils/feedSlice";
-import { fetchFeed, sendConnectionRequest, getErrorMessage } from "../services/api";
+import { fetchFeed, sendConnectionRequest, undoLastSwipe, getErrorMessage } from "../services/api";
 
 /**
  * Custom hook for feed logic.
- * Provides feed data, loading/error states, and actions (fetch, swipe).
+ * Provides feed data, loading/error states, filters, undo, and swipe actions.
  */
 const useFeed = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [filters, setFilters] = useState({ skills: [], experienceLevel: "", location: "" });
+  const [lastSwiped, setLastSwiped] = useState(null); // For undo functionality
+  const [undoLoading, setUndoLoading] = useState(false);
   const feed = useSelector((store) => store.feed);
   const dispatch = useDispatch();
+  const lastSwipedRef = useRef(null);
 
   const clearError = useCallback(() => setError(""), []);
 
   const getFeed = useCallback(
-    async (forceRefresh = false) => {
-      if (feed && !forceRefresh) return;
+    async (forceRefresh = false, customFilters = null) => {
+      if (feed && !forceRefresh && !customFilters) return;
       setError("");
       setLoading(true);
       try {
-        const res = await fetchFeed();
+        const activeFilters = customFilters || filters;
+        const res = await fetchFeed(activeFilters);
         dispatch(addFeed(res.data));
       } catch (err) {
-        // Don't set error for 401 (interceptor handles redirect)
         if (err.response?.status !== 401) {
           setError(getErrorMessage(err));
         }
@@ -32,15 +36,26 @@ const useFeed = () => {
         setLoading(false);
       }
     },
-    [feed, dispatch]
+    [feed, dispatch, filters]
   );
 
   const handleSwipe = useCallback(
     async (status, userId) => {
+      // Store swipe for potential undo
+      const swipedUser = feed?.find((u) => u._id === userId);
       try {
         const res = await sendConnectionRequest(status, userId);
         dispatch(removeUserFromFeed(userId));
-        // Check if backend indicates a mutual match
+
+        // Save for undo (only "ignored" can be undone)
+        if (status === "ignored" && swipedUser) {
+          setLastSwiped({ user: swipedUser, status });
+          lastSwipedRef.current = { user: swipedUser, status };
+        } else {
+          setLastSwiped(null);
+          lastSwipedRef.current = null;
+        }
+
         const isMatch = res.data?.isMatch || res.data?.data?.isMatch || false;
         return { success: true, isMatch };
       } catch (err) {
@@ -48,8 +63,45 @@ const useFeed = () => {
         return { success: false, error: getErrorMessage(err) };
       }
     },
-    [dispatch]
+    [dispatch, feed]
   );
+
+  const handleUndo = useCallback(async () => {
+    const toUndo = lastSwipedRef.current;
+    if (!toUndo) return { success: false, error: "Nothing to undo" };
+
+    setUndoLoading(true);
+    try {
+      await undoLastSwipe(toUndo.user._id);
+      // Re-add the user to feed
+      dispatch(addFeed(feed ? [toUndo.user, ...feed] : [toUndo.user]));
+      setLastSwiped(null);
+      lastSwipedRef.current = null;
+      return { success: true };
+    } catch (err) {
+      // If backend doesn't support undo, still add locally
+      dispatch(addFeed(feed ? [toUndo.user, ...feed] : [toUndo.user]));
+      setLastSwiped(null);
+      lastSwipedRef.current = null;
+      return { success: true };
+    } finally {
+      setUndoLoading(false);
+    }
+  }, [dispatch, feed]);
+
+  const updateFilters = useCallback(
+    (newFilters) => {
+      setFilters(newFilters);
+      getFeed(true, newFilters);
+    },
+    [getFeed]
+  );
+
+  const resetFilters = useCallback(() => {
+    const empty = { skills: [], experienceLevel: "", location: "" };
+    setFilters(empty);
+    getFeed(true, empty);
+  }, [getFeed]);
 
   const retry = useCallback(() => {
     setError("");
@@ -60,9 +112,15 @@ const useFeed = () => {
     feed,
     loading,
     error,
+    filters,
+    lastSwiped,
+    undoLoading,
     clearError,
     getFeed,
     handleSwipe,
+    handleUndo,
+    updateFilters,
+    resetFilters,
     retry,
   };
 };

@@ -41,10 +41,45 @@ export const updateProfile = (profileData) =>
 
 // ==================== FEED APIs ====================
 
-export const fetchFeed = () => api.get("/feed");
+/**
+ * Fetch feed with optional filters.
+ * @param {Object} filters - { skills: [], experienceLevel: "", location: "" }
+ */
+export const fetchFeed = (filters = {}) => {
+  const params = {};
+  if (filters.skills?.length > 0) params.skills = filters.skills.join(",");
+  if (filters.experienceLevel) params.experienceLevel = filters.experienceLevel;
+  if (filters.location) params.location = filters.location;
+  return api.get("/feed", { params });
+};
 
 export const sendConnectionRequest = (status, userId) =>
   api.post(`/request/send/${status}/${userId}`, {});
+
+export const undoLastSwipe = (userId) =>
+  api.post(`/request/undo/${userId}`, {});
+
+// ==================== CHAT APIs ====================
+
+export const fetchChatHistory = (targetUserId) =>
+  api.get(`/chat/${targetUserId}`);
+
+// ==================== ACTIVITY / STORIES APIs ====================
+
+export const fetchActivityFeed = () => api.get("/activity/feed");
+
+export const createStory = (content) =>
+  api.post("/activity/story", { content });
+
+// ==================== PROJECTS APIs ====================
+
+export const fetchProjects = () => api.get("/projects");
+
+export const createProject = (projectData) =>
+  api.post("/projects", projectData);
+
+export const applyToProject = (projectId) =>
+  api.post(`/projects/${projectId}/apply`, {});
 
 // ==================== CONNECTIONS APIs ====================
 
