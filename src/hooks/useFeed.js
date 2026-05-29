@@ -9,9 +9,11 @@ import {
   undoLastSwipe,
   getErrorMessage,
 } from "../services/api";
+import { getSwipeData, recordSwipe as recordSwipeAction, getRemaining } from "../utils/rateLimiter";
 
 const MAX_UNDO_HISTORY = 3;
 const DAILY_SUPER_LIKES = 3;
+const DAILY_SWIPE_LIMIT = 50;
 
 /**
  * Custom hook for feed logic.
@@ -27,10 +29,10 @@ const useFeed = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [filters, setFilters] = useState({ skills: [], experienceLevel: "", location: "", smartMatch: false });
-  const [undoHistory, setUndoHistory] = useState([]); // last N swiped users
+  const [undoHistory, setUndoHistory] = useState([]);
   const [undoLoading, setUndoLoading] = useState(false);
+  const [swipesRemaining, setSwipesRemaining] = useState(getRemaining());
   const [superLikesRemaining, setSuperLikesRemaining] = useState(() => {
-    // Reset daily — stored with date check
     const stored = localStorage.getItem("devtinder-superlikes");
     if (stored) {
       const { count, date } = JSON.parse(stored);
@@ -82,10 +84,20 @@ const useFeed = () => {
 
   const handleSwipe = useCallback(
     async (status, userId) => {
+      // Rate limit check
+      if (swipesRemaining <= 0) {
+        setError("Daily swipe limit reached (50/day). Come back tomorrow!");
+        return { success: false, error: "Daily swipe limit reached" };
+      }
+
       const swipedUser = feed?.find((u) => u._id === userId);
       try {
         const res = await sendConnectionRequest(status, userId);
         dispatch(removeUserFromFeed(userId));
+
+        // Record swipe and update remaining count
+        recordSwipeAction();
+        setSwipesRemaining(getRemaining());
 
         // Store in undo history (only "ignored" can be undone, max 3)
         if (status === "ignored" && swipedUser) {
@@ -225,6 +237,7 @@ const useFeed = () => {
     filters,
     undoHistory,
     undoLoading,
+    swipesRemaining,
     superLikesRemaining,
     boostActive,
     boostEndTime,
