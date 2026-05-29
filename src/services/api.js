@@ -105,6 +105,18 @@ export const fetchReceivedRequests = () => api.get("/user/requests/received");
 export const reviewConnectionRequest = (status, requestId) =>
   api.post(`/request/review/${status}/${requestId}`, {});
 
+// ==================== CHALLENGES APIs ====================
+
+export const fetchChallenges = () => api.get("/challenges");
+
+export const submitChallenge = (challengeId, solution) =>
+  api.post(`/challenges/${challengeId}/submit`, { solution });
+
+// ==================== ANALYTICS APIs ====================
+
+export const fetchProfileAnalytics = (timeRange = "week") =>
+  api.get(`/profile/analytics?range=${timeRange}`);
+
 // ==================== HELPER ====================
 
 /**
